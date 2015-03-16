@@ -14,13 +14,71 @@ console.log("Content script started...");
 
 var paras = Array();
 
-Array.forEach(document.querySelectorAll('p'),function(e) {
+Array.forEach(document.querySelectorAll('article p, section p, .article_body p, .content_body p, .mw-content-ltr p'),function(e) {
     if( e.querySelectorAll('p,script,textarea').length == 0 ) {
         paras.push(e)
     }
-})
+});
 
-// remove citations
+function getRGB(sentiment) {
+    var red   = Math.floor(
+        Math.max(0, -510 * sentiment + 255))
+        .toString(16);
+
+    var green = Math.floor(
+        Math.max(0,  510 * sentiment - 255))
+        .toString(16);
+
+    return '#' + ( red.length == 2 ? red   : "0" + red )
+             + ( green.length == 2 ? green : "0" + green ) + '00';
+}
+
+var BUCKET_COUNT = 11;
+
+var sentimentBuckets = new Array(BUCKET_COUNT);
+
+for(var i = 0; i < BUCKET_COUNT; i++) {
+    sentimentBuckets[i] = {
+        y: 0,
+        color: getRGB(i/BUCKET_COUNT)
+    }
+}
+
+
+var chartShown = false;
+
+function updateChart() {
+    if (chartShown === false) {
+
+        $("body").append("<div id='sentiment-chart' style='position:fixed; bottom: 0; right: 0; width: 350px; height: 200px; background-color: transparent; opacity: 0.9; z-index: 100000000000000;'></div>");
+
+        $('#sentiment-chart').highcharts({
+            chart: {
+                type: 'column',
+            },
+            xAxis: {
+
+                labels: {
+                    enabled: false
+                }
+            },
+            yAxis: {
+                labels: {
+                    enabled: false
+                }
+            },
+            legend: {
+                enabled: false
+            },
+            series: [{
+                data: sentimentBuckets
+            }],
+            title: "Page Sentiment"
+        });
+        chartShown = true;
+    }
+    $('#sentiment-chart').highcharts().series[0].setData(sentimentBuckets);
+};
 
 function doParagraph(paragraphs, index) {
 
@@ -71,18 +129,12 @@ function doParagraph(paragraphs, index) {
 
                                 if( response[i].sentiment != undefined ) {
 
-                                    var red   = Math.floor(
-                                        Math.max(0, -510 * response[i].sentiment + 255))
-                                        .toString(16);
+                                    sentimentBuckets[Math.floor(response[i].sentiment*BUCKET_COUNT)].y += 1;
 
-                                    var green = Math.floor(
-                                        Math.max(0,  510 * response[i].sentiment - 255))
-                                        .toString(16);
+                                    updateChart();
 
-                                    replacement += '<span style=\'color:#'
-                                            + ( red.length == 2 ? red : "0"+red )
-                                            + ( green.length == 2 ? green : "0"+green )
-                                            + '00\'>'
+                                    replacement += '<span style=\'color:'
+                                            + getRGB(response[i].sentiment) + '\'>'
                                             + para.innerHTML
                                                 .substring(markers[i],markers[i+1])
                                             + '</span>';
