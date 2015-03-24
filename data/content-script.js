@@ -14,7 +14,7 @@ console.log("Content script started...");
 
 var paras = Array();
 
-Array.forEach(document.querySelectorAll('article p, section p, .article_body p, .content_body p, .mw-content-ltr p'),function(e) {
+Array.forEach(document.querySelectorAll('article p, section p, .article_body p, .content_body p, .mw-content-ltr p, p.tweet-text'),function(e) {
     if( e.querySelectorAll('p,script,textarea').length == 0 ) {
         paras.push(e)
     }
@@ -107,7 +107,7 @@ function doParagraph(paragraphs, index) {
 
             var xmlhttp = new XMLHttpRequest();
 
-            var url = location.protocol + "//stanford-nlp.conorbrady.com:8080/sentiment?" + sendingTokens.map( function(token) {
+            var url = location.protocol + "//stanford-nlp.conorbrady.com/sentiment?" + sendingTokens.map( function(token) {
                 return "lines="+encodeURI(token);
             }).join("&") + ( sendingTokens.length < 2 ? "&lines=": "" );
 
