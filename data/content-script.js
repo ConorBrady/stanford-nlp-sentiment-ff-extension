@@ -1,10 +1,15 @@
 
 String.prototype.getSentanceMarkers = function() {
-    var delim = /((?:(?!Dr)|(?!Mr)|(?!Mrs)|(?!Ms))[\.?!](?:(<|([ ]+[^a-z]))))/g;
+
+    var delim = /([.?!])\s*(?=[A-Z]|<)/g;
+    var lookbehind = /(?:\w\.\w)|(?:[A-Z][a-z])/g; // e.g. Mr Dr etc.
+
     var matches = Array();
     matches.push(0);
     while ((match = delim.exec(this)) != null) {
-        matches.push(match.index+1);
+        if (this.substring(match.index-2, match.index).match(lookbehind) === null) {
+            matches.push(match.index+1);
+        }
     }
     matches.push(this.length)
     return matches
@@ -14,7 +19,7 @@ console.log("Content script started...");
 
 var paras = Array();
 
-Array.forEach(document.querySelectorAll('article p, section p, .article_body p, .content_body p, .mw-content-ltr p, p.tweet-text'),function(e) {
+Array.forEach($('article p, [class*=content] p, [class*=article] p, [id*=content] p, [id*=article] p, .body p, p.tweet-text'),function(e) {
     if( e.querySelectorAll('p,script,textarea').length == 0 ) {
         paras.push(e)
     }
