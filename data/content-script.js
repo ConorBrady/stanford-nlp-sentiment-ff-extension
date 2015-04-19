@@ -1,4 +1,6 @@
 
+var host = "stanford-nlp.conorbrady.com";
+
 String.prototype.getSentanceMarkers = function() {
 
     var delim = /([.?!])\s*(?=[A-Z]|<)/g;
@@ -112,7 +114,7 @@ function doParagraph(paragraphs, index) {
 
             var xmlhttp = new XMLHttpRequest();
 
-            var url = location.protocol + "//stanford-nlp.conorbrady.com/sentiment?" + sendingTokens.map( function(token) {
+            var url = location.protocol + "//"+host+"/sentiment?" + sendingTokens.map( function(token) {
                 return "lines="+encodeURI(token);
             }).join("&") + ( sendingTokens.length < 2 ? "&lines=": "" );
 
